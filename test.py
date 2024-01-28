@@ -49,7 +49,7 @@ base_config = [
 ]
 
 # Загрузка данных из внешнего файла
-with open('devices.yaml') as f:
+with open('../devices.yaml') as f:
     params = yaml.safe_load(f)
 
 device1 = params['dut-t4-01']
