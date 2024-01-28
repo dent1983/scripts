@@ -1,14 +1,17 @@
 import logging
 import time
 import traceback
-import yaml
-import argparse
 import sys
 from telnetlib import Telnet
 
 # Класс для нестандартных исключений
 class CustomError(Exception):
     pass
+
+dut1_ip = '10.65.5.9'
+dut1_port = '4007'
+login = 'admin'
+password = 'admin'
 
 # Функция для входа на роутер
 def login_to_router():
@@ -17,16 +20,16 @@ def login_to_router():
     time.sleep(4)
     prompt = connect.read_very_eager().decode('utf-8')
     if 'login: ' in prompt:
-        connect.write(b'%b\n' %device1['login'].encode('utf8'))
+        connect.write(b'%b\n' %str(login).encode('utf8'))
         connect.read_until(b'Password:', timeout=5)
-        connect.write(b'%b\n' %str(device1['password']).encode('utf8'))
+        connect.write(b'%b\n' %str(password).encode('utf8'))
         connect.read_until(b'#', timeout=10)
     elif 'Password: ' in prompt:
         connect.write(b'\n')
         connect.read_until(b'login: ', timeout=10)
-        connect.write(b'%b\n' %device1['login'].encode('utf8'))
+        connect.write(b'%b\n' %str(login).encode('utf8'))
         connect.read_until(b'Password:', timeout=5)
-        connect.write(b'%b\n' %str(device1['password']).encode('utf8'))
+        connect.write(b'%b\n' %str(password).encode('utf8'))
         connect.read_until(b'#', timeout=10)
     else:
         raise CustomError('Неожиданное приглашение cli, проверьте подключение к сервисному маршрутизатору')
@@ -48,17 +51,10 @@ base_config = [
     b'end'
 ]
 
-# Загрузка данных из внешнего файла
-with open('../devices.yaml') as f:
-    params = yaml.safe_load(f)
-
-device1 = params['dut-t4-01']
-device2 = params['dut-t4-02']
-
 # Подключение к устройству
 logging.info('Авторизация на DUT')
 try:
-    with Telnet(device1['ip'], device1['port'], timeout=10) as connect:
+    with Telnet(dut1_ip, dut1_port, timeout=10) as connect:
         login_to_router()
         connect.write(b'show version\n')
         time.sleep(5)
