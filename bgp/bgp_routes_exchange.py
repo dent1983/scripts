@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 import logging
 import time
 import traceback
@@ -16,6 +15,9 @@ test_description = '''DUT1 анонсирует 10 префиксов 198.18.255
 DUT2 анонсирует 10 префиксов 200.1.0.0/24 – 200.1.9.0/24. 
 Убедиться, что DUT1 принимает префиксы 200.1.0.0/24 – 200.1.9.0/24, анонсируемые DUT2. 
 Убедиться, что DUT2 принимает префиксы 198.18.255.1/32 – 198.18.255.10/32, анонсируемые DUT1.'''
+
+
+logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 # Класс для нестандартных исключений
 class CustomError(Exception):
@@ -240,9 +242,7 @@ logging.info('------------------------------------------------------------------
 try:
     with Telnet(dut_ip, dut1_port, timeout=10) as connect:
         login_to_router()
-        command = "show ip bgp neighbors 100.1.0.2 advertised-routes ipv4"
-        connect.write(b'%b\n' % str(command).encode('ascii'))
-#        connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
+        connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
         time.sleep(1)
         connect.write(b'\n')
         time.sleep(1)
