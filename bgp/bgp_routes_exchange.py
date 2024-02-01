@@ -240,7 +240,9 @@ logging.info('------------------------------------------------------------------
 try:
     with Telnet(dut_ip, dut1_port, timeout=10) as connect:
         login_to_router()
-        connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
+        command = "show ip bgp neighbors 100.1.0.2 advertised-routes ipv4"
+        connect.write(b'%b\n' % str(command).encode('ascii'))
+#        connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
         time.sleep(1)
         connect.write(b'\n')
         time.sleep(1)
