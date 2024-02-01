@@ -246,7 +246,7 @@ try:
         connect.write(b'\n')
         time.sleep(1)
         answer_dut1 = connect.read_very_eager()
-        logging.info('Результат - \n{}'.format(answer_dut1.encode('utf-8')))
+        logging.info('Результат - \n{}'.format(answer_dut1.decode('utf-8')))
         logging.info('--------------------------------------------------------------------------------------------')
         time.sleep(2)
         if 'Total number of prefixes 10' in str(answer_dut1):
