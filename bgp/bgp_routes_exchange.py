@@ -17,7 +17,7 @@ DUT2 анонсирует 10 префиксов 200.1.0.0/24 – 200.1.9.0/24.
 Убедиться, что DUT2 принимает префиксы 198.18.255.1/32 – 198.18.255.10/32, анонсируемые DUT1.'''
 
 
-logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
+#logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 # Класс для нестандартных исключений
 class CustomError(Exception):
