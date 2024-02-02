@@ -3,6 +3,7 @@ import time
 import traceback
 import sys
 from telnetlib import Telnet
+from pprint import pprint
 
 
 dut_ip = '10.65.12.8'
@@ -237,19 +238,27 @@ logging.info('------------------------------------------------------------------
 #    logging.error('При выполнении теста возникла ошибка - \n %s' % traceback.format_exc())
 #    sys.exit(1)
 #
+
 logging.info('Сравниваем результаты на DUT1 и DUT2')
 logging.info('--------------------------------------------------------------------------------------------')
 try:
     with Telnet(dut_ip, dut1_port, timeout=10) as connect:
         login_to_router()
+        time.sleep(2)
         connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
-        time.sleep(1)
+        time.sleep(4)
         connect.write(b'\n')
-        time.sleep(1)
+        time.sleep(2)
         connect.write(b'\n')
-        time.sleep(1)
+        time.sleep(2)
         answer_dut1 = connect.read_very_eager()
+        time.sleep(5)
+        if answer_dut1 == '':
+            answer_dut1 = connect.read_very_eager()
+            time.sleep(5)
         logging.info('Результат - \n{}'.format(answer_dut1.decode('utf-8')))
+        time.sleep(2)
+        logging.info(bytes.decode(answer_dut1, encoding='utf-8'))
         logging.info('--------------------------------------------------------------------------------------------')
         time.sleep(2)
         if 'Total number of prefixes 10' in str(answer_dut1):
