@@ -4,7 +4,6 @@ import traceback
 import sys
 from telnetlib import Telnet
 import paramiko
-from netmiko import ConnectHandler
 
 dut_ip = '10.65.12.8'
 dut1_port = '4013'
@@ -237,23 +236,63 @@ logging.info('------------------------------------------------------------------
 #    sys.exit(1)
 #
 def ssh_res():
-    net_connect = ConnectHandler(
-        device_type="linux",
-        host='10.65.12.5',
-        username='admin',
-        password='admin',
-    )
-    answer = net_connect.send_command("show ip bgp neighbors 100.1.0.2 advertised-routes ipv4")
-    logging.info(answer)
+    host = '10.65.12.5'
+    port = 22
+    username = login
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(host, port, username, password)
+    answer = list()
+    for comm in found_scripts:
+        stdin, stdout, stderr = ssh.exec_command("cd /opt/spo/ && python3 " + str(comm))
+        answer.append("Соединение с агентом и выполнение скрипта")
+        for line in stdout:
+            answer.append('> ' + line.strip('\n'))
+        for line in stderr:
+            answer.append('>> ' + line.strip('\n'))
+    ssh.close()
+    answer.append("Соединение завершено. Команды переданы")
     return answer
-
-res = ssh_res()
 
 logging.info('Сравниваем результаты на DUT1 и DUT2')
 logging.info('--------------------------------------------------------------------------------------------')
-time.sleep(2)
-if 'Total number of prefixes 10' in str(res):
-    logging.info('Тест пройден успешно')
+try:
+    with Telnet(dut_ip, dut1_port, timeout=10) as connect:
+        login_to_router()
+        time.sleep(2)
+        connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
+        time.sleep(4)
+        connect.write(b'\n')
+        time.sleep(2)
+        connect.write(b'\n')
+        time.sleep(2)
+        answer_dut1 = connect.read_very_eager()
+        time.sleep(5)
+        if 'Total number of prefixes 10' not in str(answer_dut1):
+            login_to_router()
+            time.sleep(2)
+            connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
+            time.sleep(4)
+            connect.write(b'\n')
+            time.sleep(2)
+            connect.write(b'\n')
+            time.sleep(2)
+            answer_dut1 = connect.read_very_eager()
+            time.sleep(5)
+        logging.info('Результат - \n{}'.format(answer_dut1.decode('utf-8')))
+        time.sleep(2)
+        logging.info('--------------------------------------------------------------------------------------------')
+        time.sleep(2)
+        if 'Total number of prefixes 10' in str(answer_dut1):
+            logging.info('Тест пройден успешно')
+            logging.info('--------------------------------------------------------------------------------------------')
+        else:
+            raise CustomError('Тест не пройден')
+        connect.close()
+except CustomError as e:
+    logging.error(e)
+    sys.exit(1)
+except:
+    logging.error('При выполнении теста возникла ошибка - \n %s' % traceback.format_exc())
     logging.info('--------------------------------------------------------------------------------------------')
-else:
-    raise CustomError('Тест не пройден')
+    sys.exit(1)
