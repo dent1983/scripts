@@ -11,10 +11,12 @@ dut2_port = '4014'
 login = 'admin'
 password = 'admin'
 
-test_description = '''DUT1 анонсирует 10 префиксов 198.18.255.1/32 – 198.18.255.10/32. 
-DUT2 анонсирует 10 префиксов 200.1.0.0/24 – 200.1.9.0/24. 
-Убедиться, что DUT1 принимает префиксы 200.1.0.0/24 – 200.1.9.0/24, анонсируемые DUT2. 
-Убедиться, что DUT2 принимает префиксы 198.18.255.1/32 – 198.18.255.10/32, анонсируемые DUT1.'''
+test_description = '''DUT2 анонсирует префиксы 200.1.0.0/24 – 200.1.9.0/24 и 1.18.116.0/24 для DUT1.
+На DUT1 необходимо отфильтровать префиксы 200.1.0.0/24 – 200.1.9.0/24, принимаемые от DUT2.
+Таким образом в таблице маршрутизации должен остаться префикс 1.18.116.0/24 принимаемый от DUT2.
+Фильтрация должна быть осуществлена следующим образом: 
+- префикс 1.18.116.0/24 разрешен;
+- остальные префиксы запрещены.'''
 
 
 # Класс для нестандартных исключений
@@ -113,7 +115,12 @@ base_config_dut1 = [
     b'network 198.18.255.10/32',
     b'neighbor 100.1.0.2 remote-as 65002',
     b'exit',
-    b'end'
+    b'ip prefix-list d35870-t1 seq 10 permit 1.18.116.0/24',
+    b'ip prefix-list d35870-t1 seq 20 deny any',
+    b'router bgp 65001',
+    b'neighbor 100.1.0.2 prefix-list d35870-t1 in',
+    b'end',
+    b'clear ip bgp 100.1.0.2 in'
 ]
 # Конфигурация устройства DUT2
 base_config_dut2 = [
@@ -165,6 +172,10 @@ base_config_dut2 = [
     b'no shutdown',
     b'ip address 201.1.0.10/32',
     b'exit',
+    b'interface lo 11',
+    b'no shutdown',
+    b'ip address 1.18.116.1/24',
+    b'exit',
     b'router bgp 65002',
     b'bgp router-id 100.1.0.2',
     b'network 201.1.0.1/32',
@@ -177,6 +188,7 @@ base_config_dut2 = [
     b'network 201.1.0.8/32',
     b'network 201.1.0.9/32',
     b'network 201.1.0.10/32',
+    b'network 1.18.116.0/24',
     b'neighbor 100.1.0.1 remote-as 65001',
     b'exit',
     b'end'
@@ -244,7 +256,7 @@ def ssh_res():
         username='admin',
         password='admin',
     )
-    answer = net_connect.send_command("show ip bgp neighbors 100.1.0.2 advertised-routes ipv4")
+    answer = net_connect.send_command("show ip route")
     logging.info(answer)
     return answer
 
@@ -254,7 +266,7 @@ time.sleep(5)
 try:
     res = ssh_res()
     time.sleep(2)
-    if 'Total number of prefixes 10' in str(res):
+    if '1.18.116.0/24' in str(res) and '201.1.0.' not in str(res):
         logging.info('--------------------------------------------------------------------------------------------')
         logging.info('Тест пройден успешно')
         logging.info('--------------------------------------------------------------------------------------------')

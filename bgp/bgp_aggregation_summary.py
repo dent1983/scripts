@@ -11,10 +11,19 @@ dut2_port = '4014'
 login = 'admin'
 password = 'admin'
 
-test_description = '''DUT1 анонсирует 10 префиксов 198.18.255.1/32 – 198.18.255.10/32. 
+test_description1 = '''DUT1 анонсирует 10 префиксов 198.18.255.1/32 – 198.18.255.10/32. 
 DUT2 анонсирует 10 префиксов 200.1.0.0/24 – 200.1.9.0/24. 
 Убедиться, что DUT1 принимает префиксы 200.1.0.0/24 – 200.1.9.0/24, анонсируемые DUT2. 
 Убедиться, что DUT2 принимает префиксы 198.18.255.1/32 – 198.18.255.10/32, анонсируемые DUT1.'''
+
+test_description = '''Topology 1 анонсирует шесть префиксов 1.0.128.0/17, 1.0.128.0/18, 1.0.128.0/19, 
+1.0.128.0/24, 1.0.129.0/24, 1.0.132.0/24 тестируемому изделию. Тестируемое изделие принимает 
+шесть префиксов и анонсирует их Topology 2. Topology 2 принимает все шесть префиксов.
+Проверить
+1) На тестируемом изделии необходимо объединить шесть префиксов в один 1.0.0.0.0/16 и анонсировать Topology 2,
+при этом шесть префиксов, получаемые от Topology 1, анонсируются Topology 2.
+2) На тестируемом изделии необходимо объединить шесть префиксов в один 1.0.0.0.0/16 и анонсировать Topology 2,
+при этом шесть префиксов, получаемые от Topology 1, не анонсируются Topology 2.'''
 
 
 # Класс для нестандартных исключений
@@ -113,7 +122,8 @@ base_config_dut1 = [
     b'network 198.18.255.10/32',
     b'neighbor 100.1.0.2 remote-as 65002',
     b'exit',
-    b'end'
+    b'end',
+    b'clear ip bgp *'
 ]
 # Конфигурация устройства DUT2
 base_config_dut2 = [
@@ -127,59 +137,47 @@ base_config_dut2 = [
     b'system host-name dut2-t4 domain-name istok.ad',
     b'interface lo 1',
     b'no shutdown',
-    b'ip address 201.1.0.1/32',
+    b'ip address 1.0.125.1/24',
     b'exit',
     b'interface lo 2',
     b'no shutdown',
-    b'ip address 201.1.0.2/32',
+    b'ip address 1.0.126.1/24',
     b'exit',
     b'interface lo 3',
     b'no shutdown',
-    b'ip address 201.1.0.3/32',
+    b'ip address 1.0.127.1/24',
     b'exit',
     b'interface lo 4',
     b'no shutdown',
-    b'ip address 201.1.0.4/32',
+    b'ip address 1.0.128.1/24',
     b'exit',
     b'interface lo 5',
     b'no shutdown',
-    b'ip address 201.1.0.5/32',
+    b'ip address 1.0.129.1/24',
     b'exit',
     b'interface lo 6',
     b'no shutdown',
-    b'ip address 201.1.0.6/32',
-    b'exit',
-    b'interface lo 7',
-    b'no shutdown',
-    b'ip address 201.1.0.7/32',
-    b'exit',
-    b'interface lo 8',
-    b'no shutdown',
-    b'ip address 201.1.0.8/32',
-    b'exit',
-    b'interface lo 9',
-    b'no shutdown',
-    b'ip address 201.1.0.9/32',
-    b'exit',
-    b'interface lo 10',
-    b'no shutdown',
-    b'ip address 201.1.0.10/32',
+    b'ip address 1.0.130.1/24',
     b'exit',
     b'router bgp 65002',
     b'bgp router-id 100.1.0.2',
-    b'network 201.1.0.1/32',
-    b'network 201.1.0.2/32',
-    b'network 201.1.0.3/32',
-    b'network 201.1.0.4/32',
-    b'network 201.1.0.5/32',
-    b'network 201.1.0.6/32',
-    b'network 201.1.0.7/32',
-    b'network 201.1.0.8/32',
-    b'network 201.1.0.9/32',
-    b'network 201.1.0.10/32',
+    b'network 1.0.125.0/24',
+    b'network 1.0.126.0/24',
+    b'network 1.0.127.0/24',
+    b'network 1.0.128.0/24',
+    b'network 1.0.129.0/24',
+    b'network 1.0.130.0/24',
+    b'aggregate-address 1.0.125.0/24',
+    b'aggregate-address 1.0.126.0/24',
+    b'aggregate-address 1.0.127.0/24',
+    b'aggregate-address 1.0.128.0/24',
+    b'aggregate-address 1.0.129.0/24',
+    b'aggregate-address 1.0.130.0/24',
     b'neighbor 100.1.0.1 remote-as 65001',
+    b'aggregate-address 1.0.0.0/16 summary-only',
     b'exit',
-    b'end'
+    b'end',
+    b'clear ip bgp *'
 ]
 
 # Вывод цели тестирования
@@ -244,7 +242,7 @@ def ssh_res():
         username='admin',
         password='admin',
     )
-    answer = net_connect.send_command("show ip bgp neighbors 100.1.0.2 advertised-routes ipv4")
+    answer = net_connect.send_command("show ip route")
     logging.info(answer)
     return answer
 
@@ -254,7 +252,7 @@ time.sleep(5)
 try:
     res = ssh_res()
     time.sleep(2)
-    if 'Total number of prefixes 10' in str(res):
+    if '1.0.0.0/16 [20/0] via 100.1.0.2' in str(res):
         logging.info('--------------------------------------------------------------------------------------------')
         logging.info('Тест пройден успешно')
         logging.info('--------------------------------------------------------------------------------------------')
