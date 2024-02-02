@@ -188,54 +188,54 @@ logging.info('------------------------------------------------------------------
 logging.info(test_description)
 logging.info('--------------------------------------------------------------------------------------------')
 # Выполнение сценария на DUT1
-#logging.info('Авторизация на DUT1')
-#logging.info('--------------------------------------------------------------------------------------------')
-#try:
-#    with Telnet(dut_ip, dut1_port, timeout=10) as connect:
-#        login_to_router()
-#        connect.write(b'load startup\n')
-#        time.sleep(45)
-#        logging.info('Настраиваем конфигурацию на DUT1')
-#        logging.info('--------------------------------------------------------------------------------------------')
-#        for command in base_config_dut1:
-#            connect.write(command + b'\n')
-#            time.sleep(2)
-#        connect.write(b'exit\n')
-#        time.sleep(2)
-#        connect.close()
-#        time.sleep(2)
-#except CustomError as e:
-#    logging.error(e)
-#    sys.exit(1)
-#except:
-#    logging.error('При выполнении теста возникла ошибка - \n %s' % traceback.format_exc())
-#    logging.info('--------------------------------------------------------------------------------------------')
-#    sys.exit(1)
+logging.info('Авторизация на DUT1')
+logging.info('--------------------------------------------------------------------------------------------')
+try:
+    with Telnet(dut_ip, dut1_port, timeout=10) as connect:
+        login_to_router()
+        connect.write(b'load startup\n')
+        time.sleep(45)
+        logging.info('Настраиваем конфигурацию на DUT1')
+        logging.info('--------------------------------------------------------------------------------------------')
+        for command in base_config_dut1:
+            connect.write(command + b'\n')
+            time.sleep(2)
+        connect.write(b'exit\n')
+        time.sleep(2)
+        connect.close()
+        time.sleep(2)
+except CustomError as e:
+    logging.error(e)
+    sys.exit(1)
+except:
+    logging.error('При выполнении теста возникла ошибка - \n %s' % traceback.format_exc())
+    logging.info('--------------------------------------------------------------------------------------------')
+    sys.exit(1)
 
 # Выполнение сценария на DUT2
-#logging.info('Авторизация на DUT2')
-#logging.info('--------------------------------------------------------------------------------------------')
-#try:
-#    with Telnet(dut_ip, dut2_port, timeout=10) as connect:
-#        login_to_router()
-#        connect.write(b'load startup\n')
-#        time.sleep(45)
-#        logging.info('Настраиваем конфигурацию на DUT2')
-#        logging.info('--------------------------------------------------------------------------------------------')
-#        for command in base_config_dut2:
-#            connect.write(command + b'\n')
-#        time.sleep(2)
-#        connect.write(b'exit\n')
-#        time.sleep(2)
-#        connect.close()
-#        time.sleep(2)
-#except CustomError as e:
-#    logging.error(e)
-#    sys.exit(1)
-#except:
-#    logging.error('При выполнении теста возникла ошибка - \n %s' % traceback.format_exc())
-#    sys.exit(1)
-#
+logging.info('Авторизация на DUT2')
+logging.info('--------------------------------------------------------------------------------------------')
+try:
+    with Telnet(dut_ip, dut2_port, timeout=10) as connect:
+        login_to_router()
+        connect.write(b'load startup\n')
+        time.sleep(45)
+        logging.info('Настраиваем конфигурацию на DUT2')
+        logging.info('--------------------------------------------------------------------------------------------')
+        for command in base_config_dut2:
+            connect.write(command + b'\n')
+        time.sleep(2)
+        connect.write(b'exit\n')
+        time.sleep(2)
+        connect.close()
+        time.sleep(2)
+except CustomError as e:
+    logging.error(e)
+    sys.exit(1)
+except:
+    logging.error('При выполнении теста возникла ошибка - \n %s' % traceback.format_exc())
+    sys.exit(1)
+
 def ssh_res():
     net_connect = ConnectHandler(
         device_type="linux",
@@ -247,9 +247,10 @@ def ssh_res():
     logging.info(answer)
     return answer
 
+time.sleep(5)
 res = ssh_res()
 
-logging.info('Сравниваем результаты на DUT1 и DUT2')
+logging.info('Сравниваем результаты c эталонными значениями')
 logging.info('--------------------------------------------------------------------------------------------')
 time.sleep(2)
 if 'Total number of prefixes 10' in str(res):
