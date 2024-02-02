@@ -253,7 +253,15 @@ try:
         time.sleep(2)
         answer_dut1 = connect.read_very_eager()
         time.sleep(5)
-        if answer_dut1 == '':
+        if 'Total number of prefixes 10' not in str(answer_dut1):
+            login_to_router()
+            time.sleep(2)
+            connect.write(b'show ip bgp neighbors 100.1.0.2 advertised-routes ipv4\n')
+            time.sleep(4)
+            connect.write(b'\n')
+            time.sleep(2)
+            connect.write(b'\n')
+            time.sleep(2)
             answer_dut1 = connect.read_very_eager()
             time.sleep(5)
         logging.info('Результат - \n{}'.format(answer_dut1.decode('utf-8')))
