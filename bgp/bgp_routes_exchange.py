@@ -236,6 +236,8 @@ except:
     logging.error('При выполнении теста возникла ошибка - \n %s' % traceback.format_exc())
     sys.exit(1)
 
+time.sleep(5)
+
 def ssh_res():
     net_connect = ConnectHandler(
         device_type="linux",
@@ -247,11 +249,10 @@ def ssh_res():
     logging.info(answer)
     return answer
 
-time.sleep(5)
-res = ssh_res()
-
 logging.info('Сравниваем результаты c эталонными значениями')
 logging.info('--------------------------------------------------------------------------------------------')
+time.sleep(5)
+res = ssh_res()
 time.sleep(2)
 if 'Total number of prefixes 10' in str(res):
     logging.info('Тест пройден успешно')
