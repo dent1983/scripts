@@ -11,10 +11,9 @@ dut2_port = '4014'
 login = 'admin'
 password = 'admin'
 
-test_description = '''DUT2 анонсирует шесть префиксов 1.0.125.0/24, 1.0.126.0/24, 1.0.127.0/24,
-1.0.128.0/24, 1.0.129.0/24, 1.0.130.0/24 тестируемому изделию DUT1.
-Тестируемое изделие DUT1 принимает шесть префиксов.
-На тестируемом изделии DUT2 необходимо объединить шесть префиксов в один 1.0.0.0/16 и анонсировать DUT1.'''
+test_description = '''В ходе выполнения теста проверяется установление соседства двух маршрутизаторов DUT1 и DUT2.
+DUT1 анонсирует подсети 198.18.255.0/24 и 100.1.0.0/24. DUT2 анонсирует подсети 201.1.0.0/24 и 100.1.0.0/24.
+Интерфейсы eth2 обоих тестируемых устройств не участвуют в тестах'''
 
 
 # Класс для нестандартных исключений
@@ -61,60 +60,15 @@ base_config_dut1 = [
     b'system host-name dut1-t4 domain-name istok.ad',
     b'interface lo 1',
     b'no shutdown',
-    b'ip address 198.18.255.1/32',
+    b'ip address 198.18.255.1/24',
     b'exit',
-    b'interface lo 2',
-    b'no shutdown',
-    b'ip address 198.18.255.2/32',
-    b'exit',
-    b'interface lo 3',
-    b'no shutdown',
-    b'ip address 198.18.255.3/32',
-    b'exit',
-    b'interface lo 4',
-    b'no shutdown',
-    b'ip address 198.18.255.4/32',
-    b'exit',
-    b'interface lo 5',
-    b'no shutdown',
-    b'ip address 198.18.255.5/32',
-    b'exit',
-    b'interface lo 6',
-    b'no shutdown',
-    b'ip address 198.18.255.6/32',
-    b'exit',
-    b'interface lo 7',
-    b'no shutdown',
-    b'ip address 198.18.255.7/32',
-    b'exit',
-    b'interface lo 8',
-    b'no shutdown',
-    b'ip address 198.18.255.8/32',
-    b'exit',
-    b'interface lo 9',
-    b'no shutdown',
-    b'ip address 198.18.255.9/32',
-    b'exit',
-    b'interface lo 10',
-    b'no shutdown',
-    b'ip address 198.18.255.10/32',
-    b'exit',
-    b'router bgp 65001',
-    b'bgp router-id 100.1.0.1',
-    b'network 198.18.255.1/32',
-    b'network 198.18.255.2/32',
-    b'network 198.18.255.3/32',
-    b'network 198.18.255.4/32',
-    b'network 198.18.255.5/32',
-    b'network 198.18.255.6/32',
-    b'network 198.18.255.7/32',
-    b'network 198.18.255.8/32',
-    b'network 198.18.255.9/32',
-    b'network 198.18.255.10/32',
-    b'neighbor 100.1.0.2 remote-as 65002',
-    b'exit',
-    b'end',
-    b'clear ip bgp *'
+    b'router-id 198.18.255.1',
+    b'router ospf',
+    b'network 198.18.255.0/24 area 0',
+    b'network 100.1.0.0/24 area 0',
+    b'neighbor 100.1.0.2',
+    b'passive-interface eth2',
+    b'end'
 ]
 # Конфигурация устройства DUT2
 base_config_dut2 = [
@@ -128,47 +82,15 @@ base_config_dut2 = [
     b'system host-name dut2-t4 domain-name istok.ad',
     b'interface lo 1',
     b'no shutdown',
-    b'ip address 1.0.125.1/24',
+    b'ip address 201.1.0.1/24',
     b'exit',
-    b'interface lo 2',
-    b'no shutdown',
-    b'ip address 1.0.126.1/24',
-    b'exit',
-    b'interface lo 3',
-    b'no shutdown',
-    b'ip address 1.0.127.1/24',
-    b'exit',
-    b'interface lo 4',
-    b'no shutdown',
-    b'ip address 1.0.128.1/24',
-    b'exit',
-    b'interface lo 5',
-    b'no shutdown',
-    b'ip address 1.0.129.1/24',
-    b'exit',
-    b'interface lo 6',
-    b'no shutdown',
-    b'ip address 1.0.130.1/24',
-    b'exit',
-    b'router bgp 65002',
-    b'bgp router-id 100.1.0.2',
-    b'network 1.0.125.0/24',
-    b'network 1.0.126.0/24',
-    b'network 1.0.127.0/24',
-    b'network 1.0.128.0/24',
-    b'network 1.0.129.0/24',
-    b'network 1.0.130.0/24',
-    b'aggregate-address 1.0.125.0/24',
-    b'aggregate-address 1.0.126.0/24',
-    b'aggregate-address 1.0.127.0/24',
-    b'aggregate-address 1.0.128.0/24',
-    b'aggregate-address 1.0.129.0/24',
-    b'aggregate-address 1.0.130.0/24',
-    b'neighbor 100.1.0.1 remote-as 65001',
-    b'aggregate-address 1.0.0.0/16 summary-only',
-    b'exit',
-    b'end',
-    b'clear ip bgp *'
+    b'router-id 201.1.0.1',
+    b'router ospf',
+    b'network 201.1.0.0/24 area 0',
+    b'network 100.1.0.0/24 area 0',
+    b'neighbor 100.1.0.1',
+    b'passive-interface eth2',
+    b'end'
 ]
 
 # Вывод цели тестирования
@@ -233,7 +155,8 @@ def ssh_res():
         username='admin',
         password='admin',
     )
-    answer = net_connect.send_command("show ip route")
+    time.sleep(10)
+    answer = net_connect.send_command("show ip ospf neighbor")
     logging.info(answer)
     return answer
 
@@ -243,7 +166,7 @@ time.sleep(5)
 try:
     res = ssh_res()
     time.sleep(2)
-    if '1.0.0.0/16 [20/0] via 100.1.0.2' in str(res):
+    if '201.1.0.1' in str(res):
         logging.info('--------------------------------------------------------------------------------------------')
         logging.info('Тест пройден успешно')
         logging.info('--------------------------------------------------------------------------------------------')
